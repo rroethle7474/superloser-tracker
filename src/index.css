@@ -3,6 +3,7 @@
 @theme {
   --font-doodle: "Patrick Hand", system-ui, sans-serif;
   --font-display: "Caveat", cursive;
+  --font-stamp: "Stardos Stencil", Impact, "Arial Black", sans-serif;
 
   --color-paper: #fdfbf0;
   --color-paper-dark: #f5f1dc;
@@ -24,6 +25,12 @@ body,
   font-family: var(--font-doodle);
   font-size: 20px;
   line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent rotated hero copy from introducing a horizontal scrollbar. */
+body {
+  overflow-x: hidden;
 }
 
 h1,
@@ -64,19 +71,20 @@ h3 {
   box-shadow: 3px 3px 0 var(--color-ink);
 }
 
-/* Paper-y background with subtle noise */
+/* Subtle fractal-noise SVG used as paper grain. Shared between the full-page
+   paper-bg and the per-card paper-grain so cards feel like the same stock. */
 .paper-bg {
   background-color: var(--color-paper);
   background-image:
-    radial-gradient(circle at 20% 30%, rgba(255, 217, 61, 0.08) 0, transparent 60%),
-    radial-gradient(circle at 80% 70%, rgba(77, 150, 255, 0.06) 0, transparent 60%);
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.08  0 0 0 0 0.07  0 0 0 0 0.05  0 0 0 0.055 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(circle at 20% 30%, rgba(255, 217, 61, 0.1) 0, transparent 60%),
+    radial-gradient(circle at 80% 70%, rgba(77, 150, 255, 0.07) 0, transparent 60%);
 }
 
-/* Scribble underline for links */
-a.scribble {
-  text-decoration: underline wavy var(--color-accent);
-  text-underline-offset: 4px;
-  text-decoration-thickness: 2px;
+/* Paper grain for cards — the noise alone, no gradients. */
+.paper-grain {
+  background-color: var(--color-paper);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='2' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.08  0 0 0 0 0.07  0 0 0 0 0.05  0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 /* Gentle wobble for the sitter/dog/cat icons when idle */
@@ -86,4 +94,48 @@ a.scribble {
 }
 .wobble {
   animation: wobble 2s ease-in-out infinite;
+}
+
+/* Confetti piece — falls from above the viewport with rotation. */
+@keyframes confetti-fall {
+  from {
+    transform: translate3d(0, -20vh, 0) rotate(0deg) scale(var(--scale, 1));
+    opacity: 1;
+  }
+  to {
+    transform: translate3d(0, 115vh, 0) rotate(var(--rotate, 360deg)) scale(var(--scale, 1));
+    opacity: 0.85;
+  }
+}
+
+/* Pulsing dot for the LIVE broadcast badge. */
+@keyframes live-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 8px rgba(255, 107, 107, 0);
+  }
+}
+.live-pulse {
+  animation: live-pulse 1.4s ease-out infinite;
+}
+
+/* Safe-area helpers for iOS notch / home indicator. */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Hide the scrollbar on horizontally scrolling nav links without losing scroll behavior. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

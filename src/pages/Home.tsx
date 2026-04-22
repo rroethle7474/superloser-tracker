@@ -1,6 +1,7 @@
 import { Nav } from '../components/Nav'
 import { Hero } from '../components/Hero'
 import { Footer } from '../components/Footer'
+import { Divider } from '../components/Divider'
 import { ContractSection } from '../components/sections/ContractSection'
 import { LiveTrackerSection } from '../components/sections/LiveTrackerSection'
 import { VideoSection } from '../components/sections/VideoSection'
@@ -16,9 +17,13 @@ export function Home() {
       <Nav />
       <main>
         <Hero isAdmin={isAdmin} />
+        <Divider />
         <ContractSection />
+        <Divider />
         <LiveTrackerSection isAdmin={isAdmin} />
+        <Divider />
         <VideoSection isAdmin={isAdmin} />
+        <Divider />
         <CommentsSection isAdmin={isAdmin} />
       </main>
       <Footer />

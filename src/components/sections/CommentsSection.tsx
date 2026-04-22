@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { DoodleButton } from '../DoodleButton'
 import { DoodleCard } from '../DoodleCard'
+import { Tape } from '../Tape'
 import { supabase } from '../../lib/supabase'
 import { useAdminToken } from '../../hooks/useAdminToken'
 import { useRefetchOnVisible } from '../../hooks/useRefetchOnVisible'
@@ -199,7 +200,9 @@ export function CommentsSection({ isAdmin }: Props) {
         Be nice. Or don't. It's your call.
       </p>
 
-      <DoodleCard className="mb-8">
+      <DoodleCard className="relative mb-8">
+        <Tape color="yellow" position="top-left" />
+        <Tape color="pink" position="bottom-right" />
         <form onSubmit={handlePost} className="space-y-3">
           {!isAdmin && (
             <input

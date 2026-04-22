@@ -50,7 +50,7 @@ export function DoodleModal({ open, onClose, title, children }: Props) {
             animate={{ y: 0, rotate: 0, opacity: 1, scale: 1 }}
             exit={{ y: 40, rotate: -1.2, opacity: 0, scale: 0.97 }}
             transition={{ type: 'spring', stiffness: 220, damping: 24 }}
-            className="doodle-border doodle-shadow bg-paper relative w-full max-w-2xl max-h-[90vh] md:max-h-[85vh] flex flex-col overflow-hidden"
+            className="doodle-border doodle-shadow bg-paper relative w-full max-w-2xl max-h-[90dvh] md:max-h-[85dvh] flex flex-col overflow-hidden"
             onClick={(event) => event.stopPropagation()}
           >
             <header className="flex items-start justify-between gap-4 px-5 md:px-8 pt-5 pb-3 border-b-2 border-dashed border-ink/30">
@@ -65,7 +65,7 @@ export function DoodleModal({ open, onClose, title, children }: Props) {
                 ref={closeButtonRef}
                 onClick={onClose}
                 aria-label="Close"
-                className="doodle-border-alt bg-paper hover:bg-paper-dark px-3 py-1 text-2xl leading-none shrink-0 transition-colors"
+                className="doodle-border-alt bg-paper hover:bg-paper-dark text-2xl leading-none shrink-0 transition-colors inline-flex items-center justify-center min-h-[44px] min-w-[44px]"
               >
                 ✕
               </button>

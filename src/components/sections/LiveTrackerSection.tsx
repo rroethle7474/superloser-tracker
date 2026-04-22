@@ -1,7 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
+import { Confetti } from '../Confetti'
 import { DoodleButton } from '../DoodleButton'
 import { DoodleCard } from '../DoodleCard'
+import { Stamp } from '../Stamp'
+import { Tape } from '../Tape'
+import { TrackerProgress } from '../TrackerProgress'
 import { supabase } from '../../lib/supabase'
 import { useAdminToken } from '../../hooks/useAdminToken'
 import { useRefetchOnVisible } from '../../hooks/useRefetchOnVisible'
@@ -21,16 +25,20 @@ const avatarClass =
 
 // Horizontal layout, percent-of-scene coordinates.
 // Sussex (home) is on the left; Wauwatosa (the pets) on the right. Both are
-// pulled in slightly from the literal edges so the avatars (64px on mobile)
-// fit fully inside the card without getting clipped by overflow-hidden.
-const SUSSEX_X = 8
-const WAUWATOSA_X = 85
-const HALFWAY_X = (SUSSEX_X + WAUWATOSA_X) / 2 // 46.5 — used for "traveling"
+// pulled in from the literal edges so the 80-px avatars (w-16 = 4rem at our
+// 20-px root) fit fully inside the card without getting clipped by
+// overflow-hidden, and neither location label spills off the edge on iPhone SE.
+const SUSSEX_X = 14
+const WAUWATOSA_X = 82
+const HALFWAY_X = (SUSSEX_X + WAUWATOSA_X) / 2 // used for "traveling"
 const LINE_Y = 58
-const WALT_X = 80 // nudged left of Wauwatosa so the avatar isn't clipped on narrow phones
-const WALT_Y = 14
-const POPPY_Y = 36
-const GOOFBALL_Y = 72
+const WALT_X = 76 // nudged left of Wauwatosa so the avatar isn't clipped on narrow phones
+// Y values are the vertical *center* of each avatar, tuned so Walt, Poppy,
+// the Wauwatosa label, and Goofball stack without overlapping on a 400-px-tall
+// scene at iPhone-SE width (avatar is ~20 % of scene height, markers at 58 %).
+const WALT_Y = 16
+const POPPY_Y = 40
+const GOOFBALL_Y = 85
 
 // Task titles — source of truth for the state machine.
 const TASK_ON_MY_WAY = 'On my way'
@@ -116,7 +124,7 @@ function TaskControls({
         return (
           <DoodleButton
             variant="secondary"
-            className="text-base px-3 py-1"
+            className="text-base px-3 py-1 min-h-[44px] min-w-[44px]"
             disabled={busy}
             onClick={onToggleComplete}
           >
@@ -128,7 +136,7 @@ function TaskControls({
         return (
           <DoodleButton
             variant="primary"
-            className="text-sm px-3 py-1"
+            className="text-sm px-3 py-1 min-h-[44px]"
             disabled={busy}
             onClick={onToggleComplete}
           >
@@ -139,7 +147,7 @@ function TaskControls({
       return (
         <DoodleButton
           variant="primary"
-          className="text-sm px-3 py-1"
+          className="text-sm px-3 py-1 min-h-[44px]"
           disabled={busy}
           onClick={onToggleStarted}
         >
@@ -163,7 +171,7 @@ function TaskControls({
     return (
       <DoodleButton
         variant={done ? 'secondary' : 'primary'}
-        className="text-base px-3 py-1"
+        className="text-base px-3 py-1 min-h-[44px] min-w-[44px]"
         disabled={busy}
         onClick={onToggleComplete}
       >
@@ -224,6 +232,10 @@ export function LiveTrackerSection({ isAdmin }: Props) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
   const [busyTaskId, setBusyTaskId] = useState<string | null>(null)
+  const [showConfetti, setShowConfetti] = useState(false)
+  // Track prior "all done" state so confetti only fires on the transition
+  // (not when someone loads the page after the morning's already wrapped).
+  const prevAllDoneRef = useRef<boolean | null>(null)
 
   async function loadTasks() {
     const { data, error } = await supabase
@@ -248,6 +260,17 @@ export function LiveTrackerSection({ isAdmin }: Props) {
 
   // Catch up when returning from a backgrounded tab / locked phone.
   useRefetchOnVisible(loadTasks)
+
+  // Confetti trigger: when the task list transitions from not-all-done to
+  // all-done within this session, shower the page with pet emojis.
+  useEffect(() => {
+    if (tasks.length === 0) return
+    const allDone = tasks.every((t) => Boolean(t.completed_at))
+    if (prevAllDoneRef.current === false && allDone) {
+      setShowConfetti(true)
+    }
+    prevAllDoneRef.current = allDone
+  }, [tasks])
 
   // Realtime subscription — push toggles from admin out to all viewers
   useEffect(() => {
@@ -361,6 +384,7 @@ export function LiveTrackerSection({ isAdmin }: Props) {
 
   return (
     <section id="tracker" className="max-w-5xl mx-auto px-4 py-12">
+      <Confetti show={showConfetti} onDone={() => setShowConfetti(false)} />
       <h2 className="text-center mb-2">Live Tracker</h2>
       <p className="text-center text-ink-soft text-lg mb-8">
         Follow Goofball from Sussex to Wauwatosa, where Poppy and Walt await.
@@ -380,21 +404,25 @@ export function LiveTrackerSection({ isAdmin }: Props) {
         <LocationMarker x={SUSSEX_X} label="Sussex" />
         <LocationMarker x={WAUWATOSA_X} label="Wauwatosa" />
 
-        {/* Walt — slightly left of the Wauwatosa marker so he fits on narrow phones */}
+        {/* Walt — slightly left of the Wauwatosa marker so he fits on narrow phones.
+            Wobble lives on the inner div so the outer div's translate-to-center isn't
+            clobbered by the keyframe's rotate transform. */}
         <div
-          className="absolute wobble"
+          className="absolute"
           style={{
             left: `${WALT_X}%`,
             top: `${WALT_Y}%`,
             transform: 'translate(-50%, -50%)',
           }}
         >
-          <img src={waltImg} alt="Walt" className={avatarClass} />
+          <div className="wobble">
+            <img src={waltImg} alt="Walt" className={avatarClass} />
+          </div>
         </div>
 
         {/* Poppy — locked to her horizontal plane above the line; walks horizontally */}
         <motion.div
-          className="absolute wobble"
+          className="absolute"
           animate={{ left: isWalking ? walkLeftKeyframes : `${WAUWATOSA_X}%` }}
           transition={
             isWalking ? walkTransition : { type: 'spring', stiffness: 50, damping: 12 }
@@ -404,12 +432,14 @@ export function LiveTrackerSection({ isAdmin }: Props) {
             transform: 'translate(-50%, -50%)',
           }}
         >
-          <img src={poppyImg} alt="Poppy" className={avatarClass} />
+          <div className="wobble">
+            <img src={poppyImg} alt="Poppy" className={avatarClass} />
+          </div>
         </motion.div>
 
         {/* Goofball — locked to his horizontal plane below the line; walks horizontally */}
         <motion.div
-          className="absolute wobble"
+          className="absolute"
           animate={{ left: isWalking ? walkLeftKeyframes : `${goofballStaticX}%` }}
           transition={
             isWalking ? walkTransition : { type: 'spring', stiffness: 60, damping: 14 }
@@ -419,16 +449,26 @@ export function LiveTrackerSection({ isAdmin }: Props) {
             transform: 'translate(-50%, -50%)',
           }}
         >
-          <img src={goofballImg} alt="Goofball" className={avatarClass} />
+          <div className="wobble">
+            <img src={goofballImg} alt="Goofball" className={avatarClass} />
+          </div>
         </motion.div>
       </DoodleCard>
 
       {/* Tasks — full width, wraps into a 12-cell grid */}
-      <DoodleCard alt>
+      <DoodleCard alt className="relative">
+        <Tape color="yellow" position="top-left" />
+        <Tape color="blue" position="bottom-right" />
         <div className="flex items-baseline justify-between mb-4 gap-4 flex-wrap">
           <h3 className="mb-0">Tasks</h3>
           <p className="text-sm text-ink-soft">All times in US Central</p>
         </div>
+        {!loading && tasks.length > 0 && (
+          <TrackerProgress
+            completed={tasks.filter((t) => Boolean(t.completed_at)).length}
+            total={tasks.length}
+          />
+        )}
         {loading ? (
           <p className="text-center text-ink-soft py-6">Loading tasks…</p>
         ) : tasks.length === 0 ? (
@@ -440,12 +480,22 @@ export function LiveTrackerSection({ isAdmin }: Props) {
               return (
                 <li
                   key={task.id}
-                  className="doodle-border-alt bg-paper p-3 flex flex-col gap-2 min-h-[112px]"
+                  className="relative doodle-border-alt bg-paper p-3 flex flex-col gap-2 min-h-[112px] overflow-hidden"
                 >
+                  {done && (
+                    <div
+                      aria-hidden="true"
+                      className="absolute top-1 right-2 pointer-events-none"
+                    >
+                      <Stamp rotate={-16} opacity={0.55} className="text-accent text-base md:text-lg">
+                        Done
+                      </Stamp>
+                    </div>
+                  )}
                   <span
                     className={
                       done
-                        ? 'line-through text-ink-soft leading-tight'
+                        ? 'line-through text-ink-soft leading-tight pr-12'
                         : 'text-ink leading-tight'
                     }
                   >

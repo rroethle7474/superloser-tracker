@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { DoodleButton } from '../DoodleButton'
 import { DoodleCard } from '../DoodleCard'
 import { DoodleModal } from '../DoodleModal'
+import { Tape } from '../Tape'
 import { supabase } from '../../lib/supabase'
 import { useAdminToken } from '../../hooks/useAdminToken'
 import { useRefetchOnVisible } from '../../hooks/useRefetchOnVisible'
@@ -172,7 +173,9 @@ export function VideoSection({ isAdmin }: Props) {
       </p>
 
       {isAdmin && (
-        <DoodleCard className="mb-6">
+        <DoodleCard className="relative mb-6">
+          <Tape color="pink" position="top-left" />
+          <Tape color="yellow" position="bottom-right" />
           <h3 className="mb-4">Upload a video</h3>
           <form onSubmit={handleUpload} className="space-y-3">
             <input
@@ -221,7 +224,9 @@ export function VideoSection({ isAdmin }: Props) {
       {loading ? (
         <p className="text-center text-ink-soft">Loading videos…</p>
       ) : videos.length === 0 ? (
-        <DoodleCard className="text-center">
+        <DoodleCard className="relative text-center">
+          <Tape color="blue" position="top-left" />
+          <Tape color="pink" position="bottom-right" />
           <div className="aspect-video bg-paper-dark doodle-border-alt grid place-items-center p-6">
             <p className="font-display text-3xl md:text-4xl">
               No videos yet. Goofball's phone is in his pocket.
@@ -287,7 +292,7 @@ export function VideoSection({ isAdmin }: Props) {
               controls
               playsInline
               autoPlay
-              className="w-full doodle-border-alt bg-ink"
+              className="block mx-auto max-w-full max-h-[70dvh] doodle-border-alt bg-ink"
             />
             <p className="text-sm text-ink-soft">
               Uploaded {new Date(selected.created_at).toLocaleString()}

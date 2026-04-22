@@ -15,7 +15,7 @@ export function DoodleCard({
   return (
     <div
       {...rest}
-      className={`${borderClass} doodle-shadow bg-paper p-6 md:p-8 ${className}`}
+      className={`${borderClass} doodle-shadow paper-grain p-6 md:p-8 ${className}`}
     >
       {children}
     </div>
