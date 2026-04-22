@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
+import { CelebrationPaws } from '../CelebrationPaws'
 import { Confetti } from '../Confetti'
 import { DoodleButton } from '../DoodleButton'
 import { DoodleCard } from '../DoodleCard'
@@ -382,9 +383,13 @@ export function LiveTrackerSection({ isAdmin }: Props) {
           ? HALFWAY_X
           : SUSSEX_X
 
+  const allTasksDone =
+    tasks.length > 0 && tasks.every((t) => Boolean(t.completed_at))
+
   return (
-    <section id="tracker" className="max-w-5xl mx-auto px-4 py-12">
+    <section id="tracker" className="relative max-w-5xl mx-auto px-4 py-12">
       <Confetti show={showConfetti} onDone={() => setShowConfetti(false)} />
+      <CelebrationPaws show={allTasksDone} />
       <h2 className="text-center mb-2">Live Tracker</h2>
       <p className="text-center text-ink-soft text-lg mb-8">
         Follow Goofball from Sussex to Wauwatosa, where Poppy and Walt await.
